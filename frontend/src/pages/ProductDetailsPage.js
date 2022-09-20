@@ -26,30 +26,36 @@ const ProductDetailsPage = () => {
           <Row>
             <Col md={8}>
               <ListGroup variant="flush">
-                <ListGroup.Item>Cras justo odio</ListGroup.Item>
+                <ListGroup.Item>
+                  <h1>Product name</h1>
+                </ListGroup.Item>
                 <ListGroup.Item>
                   <Rating readonly size={20} initialValue={4} /> (1)
                 </ListGroup.Item>
-                <ListGroup.Item>Morbi leo risus</ListGroup.Item>
+                <ListGroup.Item>
+                  Price<span className="fw-bold">$345</span>
+                </ListGroup.Item>
                 <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
               </ListGroup>
             </Col>
             <Col md={4}>
               <ListGroup>
-                <ListGroup.Item>Cras justo odio</ListGroup.Item>
-                <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
+                <ListGroup.Item>Status: in stock</ListGroup.Item>
                 <ListGroup.Item>
+                  Price: <span className="fw-bold">$345</span>
+                </ListGroup.Item>
+                <ListGroup.Item>
+                  Quantity:
                   <Form.Select size="lg" aria-label="Default select example">
-                    <option>Open this select menu</option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
+                    <option>1</option>
+                    <option value="1">2</option>
+                    <option value="2">3</option>
+                    <option value="3">4</option>
                   </Form.Select>
                 </ListGroup.Item>
                 <ListGroup.Item>
-                  <Button variant="danger">Danger</Button>
+                  <Button variant="danger">Add to cart</Button>
                 </ListGroup.Item>
-                <ListGroup.Item>Vestibulum at eros</ListGroup.Item>
               </ListGroup>
             </Col>
           </Row>
@@ -57,10 +63,14 @@ const ProductDetailsPage = () => {
             <Col className="mt-5">
               <h5>REVIEWS</h5>
               <ListGroup variant="flush">
-                <ListGroup.Item>Cras justo odio</ListGroup.Item>
-                <ListGroup.Item>Dapibus ac facilisis in</ListGroup.Item>
-                <ListGroup.Item>Morbi leo risus</ListGroup.Item>
-                <ListGroup.Item>Porta ac consectetur ac</ListGroup.Item>
+                {Array.from({ length: 10 }).map((item, idx) => (
+                  <ListGroup.Item key={idx}>
+                    John Doe <br />
+                    <Rating readonly size={20} initialValue={4} />
+                    09-20-2001 <br />
+                    review contents
+                  </ListGroup.Item>
+                ))}
               </ListGroup>
             </Col>
           </Row>
@@ -68,23 +78,18 @@ const ProductDetailsPage = () => {
           <Alert variant="danger">Login first to write a review</Alert>
           <Form>
             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-              <Form.Label>Email address</Form.Label>
-              <Form.Control type="email" placeholder="name@example.com" />
-            </Form.Group>
-            <Form.Group
-              className="mb-3"
-              controlId="exampleForm.ControlTextarea1"
-            >
-              <Form.Label>Example textarea</Form.Label>
+              <Form.Label>Write a review</Form.Label>
               <Form.Control as="textarea" rows={3} />
             </Form.Group>
             <Form.Select aria-label="Default select example">
-              <option>Open this select menu</option>
-              <option value="1">One</option>
-              <option value="2">Two</option>
-              <option value="3">Three</option>
+              <option>Your rating</option>
+              <option value="5">5 (very good)</option>
+              <option value="4">4 (good)</option>
+              <option value="3">3 (average)</option>
+              <option value="2">2 (bad)</option>
+              <option value="1">1 (awful)</option>
             </Form.Select>
-            <Button variant="primary">Primary</Button>
+            <Button variant="primary" className="mb-3 mt-3">Submit</Button>
           </Form>
         </Col>
       </Row>
@@ -93,4 +98,3 @@ const ProductDetailsPage = () => {
 };
 
 export default ProductDetailsPage;
-
