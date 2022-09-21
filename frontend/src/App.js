@@ -45,7 +45,7 @@ function App() {
         {/* user routes */}
         <Route element={<ProtectedRoutesComponent admin={false} />}>
           <Route path="/user" element={<UserProfilePage />} />
-          <Route path="/user/my-order" element={<UserOrdersPage />} />
+          <Route path="/user/my-orders" element={<UserOrdersPage />} />
           <Route path="/user/cart-details" element={<UserCartDetailsPage />} />
           <Route
             path="/user/order-details"
