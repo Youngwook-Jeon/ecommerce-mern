@@ -1,5 +1,6 @@
 const RECORDS_PER_PAGE = require("../config/pagination");
 const Product = require("../models/ProductModel");
+const imageValidator = require("../utils/imageValidator");
 
 const getProducts = async (req, res, next) => {
   try {
@@ -211,6 +212,43 @@ const adminUpdateProduct = async (req, res, next) => {
   }
 };
 
+const adminUpload = async (req, res, next) => {
+  try {
+    if (!req.files || !!req.files.images === false) {
+      return res.status(400).send("No files were uploaded");
+    }
+
+    const validateResult = imageValidator(req.files.images);
+    if (validateResult.error) {
+      return res.status(400).send(validateResult.error);
+    }
+
+    const path = require("path");
+    const { v4: uuidv4 } = require("uuid");
+    const uploadDirectory = path.resolve(__dirname, "../../frontend", "public", "images", "products");
+
+    let imagesTable = [];
+    if (Array.isArray(req.files.images)) {
+      imagesTable = req.files.images
+    } else {
+      imagesTable.push(req.files.images)
+    }
+
+    for (let image of imagesTable) {
+      var uploadPath = uploadDirectory + "/" + uuidv4() + path.extname(image.name)
+      image.mv(uploadPath, function(err) {
+        if (err) {
+          return res.status(500).send(err);
+        }
+      })
+    }
+
+    return res.send("Files uploaded.")
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getProducts,
   getProductById,
@@ -219,4 +257,5 @@ module.exports = {
   adminDeleteProduct,
   adminCreateProduct,
   adminUpdateProduct,
+  adminUpload,
 };
