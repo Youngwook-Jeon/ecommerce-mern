@@ -225,25 +225,60 @@ const adminUpload = async (req, res, next) => {
 
     const path = require("path");
     const { v4: uuidv4 } = require("uuid");
-    const uploadDirectory = path.resolve(__dirname, "../../frontend", "public", "images", "products");
+    const uploadDirectory = path.resolve(
+      __dirname,
+      "../../frontend",
+      "public",
+      "images",
+      "products"
+    );
+
+    let product = await Product.findById(req.query.productId).orFail();
 
     let imagesTable = [];
     if (Array.isArray(req.files.images)) {
-      imagesTable = req.files.images
+      imagesTable = req.files.images;
     } else {
-      imagesTable.push(req.files.images)
+      imagesTable.push(req.files.images);
     }
 
     for (let image of imagesTable) {
-      var uploadPath = uploadDirectory + "/" + uuidv4() + path.extname(image.name)
-      image.mv(uploadPath, function(err) {
+      var fileName = uuidv4() + path.extname(image.name);
+      var uploadPath = uploadDirectory + "/" + fileName;
+      product.images.push({ path: "/images/products/" + fileName });
+
+      image.mv(uploadPath, function (err) {
         if (err) {
           return res.status(500).send(err);
         }
-      })
+      });
     }
 
-    return res.send("Files uploaded.")
+    await product.save();
+    return res.send("Files uploaded.");
+  } catch (error) {
+    next(error);
+  }
+};
+
+const adminDeleteProductImage = async (req, res, next) => {
+  try {
+    const imagePath = decodeURIComponent(req.params.imagePath);
+    const path = require("path");
+    const finalPath = path.resolve("../frontend/public") + imagePath;
+    const fs = require("fs");
+    fs.unlink(finalPath, (err) => {
+      if (err) {
+        res.status(500).send(err);
+      }
+    });
+
+    await Product.findOneAndUpdate(
+      { _id: req.params.productId },
+      { $pull: { images: { path: imagePath } } }
+    ).orFail();
+
+    return res.end();
   } catch (error) {
     next(error);
   }
@@ -258,4 +293,5 @@ module.exports = {
   adminCreateProduct,
   adminUpdateProduct,
   adminUpload,
+  adminDeleteProductImage,
 };

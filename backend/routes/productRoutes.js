@@ -9,6 +9,7 @@ const {
   adminCreateProduct,
   adminUpdateProduct,
   adminUpload,
+  adminDeleteProductImage,
 } = require("../controllers/productController");
 
 router.get("/", getProducts);
@@ -21,6 +22,7 @@ router.get("/get-one/:id", getProductById);
 // admin routes
 router.get("/admin", adminGetProducts);
 router.delete("/admin/:id", adminDeleteProduct);
+router.delete("/admin/image/:imagePath/:productId", adminDeleteProductImage);
 router.post("/admin", adminCreateProduct);
 router.post("/admin/upload", adminUpload);
 router.put("/admin/:id", adminUpdateProduct);
