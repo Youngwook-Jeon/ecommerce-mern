@@ -1,4 +1,5 @@
 const User = require("../models/UserModel");
+const generateAuthToken = require("../utils/generateAuthToken");
 const { hashPassword } = require("../utils/hashPassword");
 
 const getUsers = async (req, res, next) => {
@@ -19,7 +20,7 @@ const registerUser = async (req, res, next) => {
 
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ error: "User already exists" });
+      return res.status(400).send("User already exists");
     }
 
     const user = await User.create({
@@ -28,7 +29,33 @@ const registerUser = async (req, res, next) => {
       email: email.toLowerCase(),
       password: hashPassword(password),
     });
-    res.status(201).send(user);
+    res
+      .cookie(
+        "access_token",
+        generateAuthToken(
+          user._id,
+          user.name,
+          user.lastName,
+          user.email,
+          user.isAdmin
+        ),
+        {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+        }
+      )
+      .status(201)
+      .json({
+        success: "User created",
+        userCreated: {
+          _id: user._id,
+          name: user.name,
+          lastName: user.lastName,
+          email: user.email,
+          isAdmin: user.isAdmin,
+        },
+      });
   } catch (error) {
     next(error);
   }
