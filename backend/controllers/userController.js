@@ -1,6 +1,8 @@
 const User = require("../models/UserModel");
+const Review = require("../models/ReviewModel");
 const generateAuthToken = require("../utils/generateAuthToken");
 const { hashPassword, comparePasswords } = require("../utils/hashPassword");
+const Product = require("../models/ProductModel");
 
 const getUsers = async (req, res, next) => {
   try {
@@ -151,6 +153,60 @@ const getUserProfile = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}
+};
 
-module.exports = { getUsers, registerUser, loginUser, updateUserProfile, getUserProfile };
+const writeReview = async (req, res, next) => {
+  try {
+    const { comment, rating } = req.body;
+    if (!(comment && rating)) {
+      return res.status(400).send("All inputs are required");
+    }
+
+    const ObjectId = require("mongodb").ObjectId;
+    let reviewId = ObjectId();
+
+    await Review.create([
+      {
+        _id: reviewId,
+        comment: comment,
+        rating: Number(rating),
+        user: {
+          _id: req.user._id,
+          name: req.user.name + " " + req.user.lastName,
+        },
+      },
+    ]);
+
+    const product = await Product.findById(req.params.productId).populate("reviews");
+    const alreadyReviewed = product.reviews.find((r) => r.user._id.toString() === req.user._id.toString());
+    if (alreadyReviewed) {
+      return res.status(400).send("product already reviewed");
+    }
+
+    let prc = [...product.reviews];
+    prc.push({ rating: rating });
+    product.reviews.push(reviewId);
+
+    if (product.reviews.length === 1) {
+      product.rating = Number(rating);
+      product.reviewsNumber = 1;
+    } else {
+      product.reviewsNumber = product.reviews.length;
+      product.rating = prc.map((item) => Number(item.rating)).reduce((sum, item) => sum + item, 0) / product.reviews.length;
+    }
+    await product.save();
+
+    return res.send("review created");
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getUsers,
+  registerUser,
+  loginUser,
+  updateUserProfile,
+  getUserProfile,
+  writeReview,
+};
