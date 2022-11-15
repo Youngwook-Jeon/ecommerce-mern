@@ -157,6 +157,8 @@ const getUserProfile = async (req, res, next) => {
 
 const writeReview = async (req, res, next) => {
   try {
+    const session = await Review.startSession();
+
     const { comment, rating } = req.body;
     if (!(comment && rating)) {
       return res.status(400).send("All inputs are required");
@@ -165,6 +167,7 @@ const writeReview = async (req, res, next) => {
     const ObjectId = require("mongodb").ObjectId;
     let reviewId = ObjectId();
 
+    session.startTransaction();
     await Review.create([
       {
         _id: reviewId,
@@ -175,11 +178,13 @@ const writeReview = async (req, res, next) => {
           name: req.user.name + " " + req.user.lastName,
         },
       },
-    ]);
+    ], { session: session });
 
-    const product = await Product.findById(req.params.productId).populate("reviews");
+    const product = await Product.findById(req.params.productId).populate("reviews").session(session);
     const alreadyReviewed = product.reviews.find((r) => r.user._id.toString() === req.user._id.toString());
     if (alreadyReviewed) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("product already reviewed");
     }
 
@@ -196,7 +201,47 @@ const writeReview = async (req, res, next) => {
     }
     await product.save();
 
+    await session.commitTransaction();
+    session.endSession();
+
     return res.send("review created");
+  } catch (error) {
+    await session.abortTransaction();
+    next(error);
+  }
+};
+
+const getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).select("name lastName email isAdmin").orFail();
+    return res.send(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).orFail();
+
+    user.name = req.body.name || user.name;
+    user.lastName = req.body.lastName || user.lastName;
+    user.email = req.body.email || user.email;
+    user.isAdmin = req.body.isAdmin || user.isAdmin;
+
+    await user.save();
+
+    return res.send("user updated");
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).orFail();
+    await user.remove();
+    return res.send("user removed");
   } catch (error) {
     next(error);
   }
@@ -209,4 +254,7 @@ module.exports = {
   updateUserProfile,
   getUserProfile,
   writeReview,
+  getUser,
+  updateUser,
+  deleteUser,
 };
