@@ -9,7 +9,6 @@ import AttributesFilterComponent from "../components/filterQueryResultOptions/At
 import axios from "axios";
 
 const ProductListPage = () => {
-  axios.get("/api/products").then((res) => console.log(res));
 
   return (
     <Container fluid>
