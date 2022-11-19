@@ -3,16 +3,28 @@ import { LinkContainer } from "react-router-bootstrap";
 import AdminLinksComponent from "../../../components/admin/AdminLinksComponent";
 import { useState, useEffect } from "react";
 
-const UsersPageComponent = ({ fetchUsers }) => {
+const UsersPageComponent = ({ fetchUsers, deleteUser }) => {
   const [users, setUsers] = useState([]);
+  const [userDeleted, setUserDeleted] = useState(false);
 
-  const deleteHandler = () => {
-    if (window.confirm("Are you sure to delete?")) alert("User deleted!");
+  const deleteHandler = async (userId) => {
+    if (window.confirm("Are you sure to delete?")) {
+      const data = await deleteUser(userId);
+      if (data === 'user removed') {
+        setUserDeleted(!userDeleted);
+      }
+    }
   };
 
   useEffect(() => {
-    fetchUsers().then(res => setUsers(res));
-  }, []);
+    const abortController = new AbortController();
+    fetchUsers(abortController)
+      .then((res) => setUsers(res))
+      .catch((err) => {
+        console.log(err);
+      });
+    return () => abortController.abort();
+  }, [fetchUsers, userDeleted]);
 
   return (
     <Row className="m-5">
@@ -21,7 +33,6 @@ const UsersPageComponent = ({ fetchUsers }) => {
       </Col>
       <Col md={10}>
         <h1>User List</h1>
-        {console.log(users)}
         <Table striped bordered hover responsive>
           <thead>
             <tr>
@@ -34,18 +45,18 @@ const UsersPageComponent = ({ fetchUsers }) => {
             </tr>
           </thead>
           <tbody>
-            {["bi bi-check-lg text-success", "bi bi-x-lg text-danger"].map(
-              (item, idx) => (
+            {users.map(
+              (user, idx) => (
                 <tr key={idx}>
                   <td>{idx + 1}</td>
-                  <td>Mark</td>
-                  <td>Twain</td>
-                  <td>email@email.com</td>
+                  <td>{user.name}</td>
+                  <td>{user.lastName}</td>
+                  <td>{user.email}</td>
                   <td>
-                    <i className={item}></i>
+                    {user.isAdmin ? <i className="bi bi-check-lg text-success"></i> : <i className="bi bi-x-lg text-danger"></i>}
                   </td>
                   <td>
-                    <LinkContainer to="/admin/edit-user">
+                    <LinkContainer to={`/admin/edit-user/${user._id}`}>
                       <Button className="btn-sm">
                         <i className="bi bi-pencil-square"></i>
                       </Button>
@@ -54,7 +65,7 @@ const UsersPageComponent = ({ fetchUsers }) => {
                     <Button
                       variant="danger"
                       className="btn-sm"
-                      onClick={deleteHandler}
+                      onClick={() => deleteHandler(user._id)}
                     >
                       <i className="bi bi-x-circle"></i>
                     </Button>
