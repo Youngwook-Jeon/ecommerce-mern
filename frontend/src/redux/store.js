@@ -1,10 +1,17 @@
-import { createStore } from "redux";
+import { createStore, combineReducers, applyMiddleware } from "redux";
 import { composeWithDevTools } from "redux-devtools-extension";
+import { counterReducer } from "./reducers/cartReducers";
+import thunk from "redux-thunk";
 
-const counterReducer = (state = { value: 0 }, action) => {
-  return state;
-};
+const reducer = combineReducers({
+  cart: counterReducer,
+});
 
-const store = createStore(counterReducer, composeWithDevTools());
+const middleware = [thunk];
+const store = createStore(
+  reducer,
+  { cart: { value: 0 } },
+  composeWithDevTools(applyMiddleware(...middleware))
+);
 
 export default store;
