@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const LoginPageComponent = ({ loginUserApiRequest }) => {
+const LoginPageComponent = ({ loginUserApiRequest, reduxDispatch, setReduxUserState }) => {
   const [validated, setValidated] = useState(false);
   const [loginUserResponseState, setLoginUserResponseState] = useState({
     success: "",
@@ -38,6 +38,10 @@ const LoginPageComponent = ({ loginUserApiRequest }) => {
             loading: false,
             error: "",
           });
+
+          if (res.userLoggedIn) {
+            reduxDispatch(setReduxUserState(res.userLoggedIn));
+          }
 
           if (res.success === "user logged in successfully" && !res.userLoggedIn.isAdmin) navigate("/user", { replace: true });
           else navigate("/admin/orders", { replace: true });
