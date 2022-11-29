@@ -43,8 +43,8 @@ const LoginPageComponent = ({ loginUserApiRequest, reduxDispatch, setReduxUserSt
             reduxDispatch(setReduxUserState(res.userLoggedIn));
           }
 
-          if (res.success === "user logged in successfully" && !res.userLoggedIn.isAdmin) navigate("/user", { replace: true });
-          else navigate("/admin/orders", { replace: true });
+          if (res.success === "user logged in successfully" && !res.userLoggedIn.isAdmin) window.location.href = "/user"
+          else window.location.href = "/admin/orders";
         })
         .catch((err) =>
           setLoginUserResponseState({
