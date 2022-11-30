@@ -3,15 +3,20 @@ import { Link } from "react-router-dom";
 import AdminLinksComponent from "../../../components/admin/AdminLinksComponent";
 
 import { useEffect, useState } from "react";
+import { logout } from "../../../redux/actions/userActions";
+import { useDispatch } from "react-redux";
 
 const OrdersPageComponent = ({ getOrders }) => {
   const [orders, setOrders] = useState([]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     getOrders()
       .then((orders) => setOrders(orders))
-      .catch((err) => console.log(err));
-  }, [getOrders]);
+      .catch((err) => {
+        // dispatch(logout());
+      });
+  }, [getOrders, dispatch]);
 
   return (
     <Row className="m-5">

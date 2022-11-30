@@ -2,10 +2,13 @@ import { Button, Col, Row, Table } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import AdminLinksComponent from "../../../components/admin/AdminLinksComponent";
 import { useState, useEffect } from "react";
+import { logout } from "../../../redux/actions/userActions";
+import { useDispatch } from "react-redux";
 
 const UsersPageComponent = ({ fetchUsers, deleteUser }) => {
   const [users, setUsers] = useState([]);
   const [userDeleted, setUserDeleted] = useState(false);
+  const dispatch = useDispatch();
 
   const deleteHandler = async (userId) => {
     if (window.confirm("Are you sure to delete?")) {
@@ -21,10 +24,10 @@ const UsersPageComponent = ({ fetchUsers, deleteUser }) => {
     fetchUsers(abortController)
       .then((res) => setUsers(res))
       .catch((err) => {
-        console.log(err);
+        // dispatch(logout());
       });
     return () => abortController.abort();
-  }, [fetchUsers, userDeleted]);
+  }, [fetchUsers, userDeleted, dispatch]);
 
   return (
     <Row className="m-5">

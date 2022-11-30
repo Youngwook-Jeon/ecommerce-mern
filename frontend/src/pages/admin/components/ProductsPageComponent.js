@@ -3,10 +3,13 @@ import { LinkContainer } from "react-router-bootstrap";
 import AdminLinksComponent from "../../../components/admin/AdminLinksComponent";
 
 import { useState, useEffect } from "react";
+import { logout } from "../../../redux/actions/userActions";
+import { useDispatch } from "react-redux";
 
 const ProductsPageComponent = ({ fetchProducts, deleteProduct }) => {
   const [products, setProducts] = useState([]);
   const [productDeleted, setProductDeleted] = useState(false);
+  const dispatch = useDispatch();
 
   const deleteHandler = async (productId) => {
     if (window.confirm("Are you sure to delete?")) {
@@ -22,11 +25,11 @@ const ProductsPageComponent = ({ fetchProducts, deleteProduct }) => {
     fetchProducts(abortController)
       .then((res) => setProducts(res))
       .catch((err) => {
-        console.log(err);
+        // dispatch(logout());
       });
 
     return () => abortController.abort();
-  }, [fetchProducts, productDeleted]);
+  }, [fetchProducts, productDeleted, dispatch]);
 
   return (
     <Row className="m-5">
