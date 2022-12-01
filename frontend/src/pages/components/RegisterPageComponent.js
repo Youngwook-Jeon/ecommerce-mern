@@ -10,16 +10,26 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-const RegisterPageComponent = ({ registerUserApiRequest }) => {
+const RegisterPageComponent = ({
+  registerUserApiRequest,
+  reduxDispatch,
+  setReduxUserState,
+}) => {
   const [validated, setValidated] = useState(false);
+  const [registerUserResponseState, setRegisterUserResponseState] = useState({
+    success: "",
+    error: "",
+    loading: false,
+  });
+  const [passwordsMatchState, setPasswordsMatchState] = useState(true);
 
   const onChange = () => {
     const password = document.querySelector("input[name=password]");
-    const confirm = document.querySelector("input[name=confirmPassword]");
-    if (confirm.value === password.value) {
-      confirm.setCustomValidity("");
+    const confirmPassword = document.querySelector("input[name=confirmPassword]");
+    if (confirmPassword.value === password.value) {
+      setPasswordsMatchState(true);
     } else {
-      confirm.setCustomValidity("Passwords do not match");
+      setPasswordsMatchState(false);
     }
   };
 
@@ -36,11 +46,25 @@ const RegisterPageComponent = ({ registerUserApiRequest }) => {
       email &&
       password &&
       name &&
-      lastName
+      lastName &&
+      form.password.value === form.confirmPassword.value
     ) {
+      setRegisterUserResponseState({ loading: true });
       registerUserApiRequest(name, lastName, email, password)
-        .then((res) => console.log(res))
-        .catch((err) => console.log(err));
+        .then((data) => {
+          setRegisterUserResponseState({
+            success: data.success,
+            loading: false,
+          });
+          reduxDispatch(setReduxUserState(data.userCreated));
+        })
+        .catch((err) =>
+          setRegisterUserResponseState({
+            error: err.response.data.message
+              ? err.response.data.message
+              : err.response.data,
+          })
+        );
     }
 
     setValidated(true);
@@ -97,6 +121,7 @@ const RegisterPageComponent = ({ registerUserApiRequest }) => {
                 name="password"
                 minLength={6}
                 onChange={onChange}
+                isInvalid={!passwordsMatchState}
               />
               <Form.Control.Feedback type="invalid">
                 Please enter a valid password
@@ -114,6 +139,7 @@ const RegisterPageComponent = ({ registerUserApiRequest }) => {
                 name="confirmPassword"
                 minLength={6}
                 onChange={onChange}
+                isInvalid={!passwordsMatchState}
               />
               <Form.Control.Feedback type="invalid">
                 Both passwords should match
@@ -128,19 +154,36 @@ const RegisterPageComponent = ({ registerUserApiRequest }) => {
             </Row>
 
             <Button type="submit">
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
+              {registerUserResponseState &&
+              registerUserResponseState.loading === true ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                ""
+              )}
               Submit
             </Button>
-            <Alert show={true} variant="danger">
+            <Alert
+              show={
+                registerUserResponseState &&
+                registerUserResponseState.error === "User already exists"
+              }
+              variant="danger"
+            >
               User with that email already exists!
             </Alert>
-            <Alert show={true} variant="info">
+            <Alert
+              show={
+                registerUserResponseState &&
+                registerUserResponseState.success === "User created"
+              }
+              variant="info"
+            >
               User created
             </Alert>
           </Form>
