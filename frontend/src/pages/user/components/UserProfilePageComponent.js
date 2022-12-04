@@ -1,7 +1,15 @@
 import { Col, Container, Row, Button, Form, Alert } from "react-bootstrap";
 import { useState, useEffect } from "react";
 
-const UserProfilePageComponent = ({ updateUserApiRequest, fetchUser, userInfo }) => {
+const UserProfilePageComponent = ({
+  updateUserApiRequest,
+  fetchUser,
+  userInfoFromRedux,
+  setReduxUserState,
+  reduxDispatch,
+  localStorage,
+  sessionStorage,
+}) => {
   const [validated, setValidated] = useState(false);
   const [updateUserResponseState, setUpdateUserResponseState] = useState({
     success: "",
@@ -9,16 +17,19 @@ const UserProfilePageComponent = ({ updateUserApiRequest, fetchUser, userInfo })
   });
   const [passwordsMatchState, setPasswordsMatchState] = useState(true);
   const [user, setUser] = useState({});
+  const userInfo = userInfoFromRedux;
 
   useEffect(() => {
     fetchUser(userInfo._id)
-    .then((data) => setUser(data))
-    .catch((err) => console.log(err));
+      .then((data) => setUser(data))
+      .catch((err) => console.log(err));
   }, [userInfo._id, fetchUser]);
 
   const onChange = () => {
     const password = document.querySelector("input[name=password]");
-    const confirmPassword = document.querySelector("input[name=confirmPassword]");
+    const confirmPassword = document.querySelector(
+      "input[name=confirmPassword]"
+    );
     if (confirmPassword.value === password.value) {
       setPasswordsMatchState(true);
     } else {
@@ -57,6 +68,22 @@ const UserProfilePageComponent = ({ updateUserApiRequest, fetchUser, userInfo })
       )
         .then((data) => {
           setUpdateUserResponseState({ success: data.success, error: "" });
+          reduxDispatch(
+            setReduxUserState({
+              doNotLogout: userInfo.doNotLogout,
+              ...data.userUpdated,
+            })
+          );
+          if (userInfo.doNotLogout)
+            localStorage.setItem(
+              "userInfo",
+              JSON.stringify({ doNotLogout: true, ...data.userUpdated })
+            );
+          else
+            sessionStorage.setItem(
+              "userInfo",
+              JSON.stringify({ doNotLogout: false, ...data.userUpdated })
+            );
         })
         .catch((err) => {
           setUpdateUserResponseState({
@@ -104,7 +131,10 @@ const UserProfilePageComponent = ({ updateUserApiRequest, fetchUser, userInfo })
               <Form.Label>Email address</Form.Label>
               <Form.Control
                 disabled
-                value={user.email + "   if you want to change email, remove account ad create new one with new email address"}
+                value={
+                  user.email +
+                  "   if you want to change email, remove account ad create new one with new email address"
+                }
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="formBasicPhone">
@@ -198,10 +228,21 @@ const UserProfilePageComponent = ({ updateUserApiRequest, fetchUser, userInfo })
             <Button variant="primary" type="submit">
               Update
             </Button>
-            <Alert show={updateUserResponseState && updateUserResponseState.error !== "" } variant="danger">
+            <Alert
+              show={
+                updateUserResponseState && updateUserResponseState.error !== ""
+              }
+              variant="danger"
+            >
               Something went wrong
             </Alert>
-            <Alert show={updateUserResponseState && updateUserResponseState.success === "user updated" } variant="info">
+            <Alert
+              show={
+                updateUserResponseState &&
+                updateUserResponseState.success === "user updated"
+              }
+              variant="info"
+            >
               User updated
             </Alert>
           </Form>
