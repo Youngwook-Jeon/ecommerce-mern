@@ -9,6 +9,7 @@ import {
 } from "react-bootstrap";
 import CartItemComponent from "../../../components/CartItemComponent";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const UserCartDetailsPageComponent = ({
   cartItems,
@@ -19,10 +20,14 @@ const UserCartDetailsPageComponent = ({
   reduxDispatch,
   getUser,
   userInfo,
+  createOrder,
 }) => {
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [userAddress, setUserAddress] = useState(false);
   const [missingAddress, setMissingAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("pp");
+
+  const navigate = useNavigate();
 
   const changeCount = (productID, count) => {
     reduxDispatch(addToCart(productID, count));
@@ -46,7 +51,9 @@ const UserCartDetailsPageComponent = ({
           !data.phoneNumber
         ) {
           setButtonDisabled(true);
-          setMissingAddress(". In order to make order, please fill out your profile with correct address, city etc.");
+          setMissingAddress(
+            ". In order to make order, please fill out your profile with correct address, city etc."
+          );
         } else {
           setUserAddress({
             address: data.address,
@@ -62,6 +69,38 @@ const UserCartDetailsPageComponent = ({
       .catch((err) => console.log(err));
   }, [userInfo._id, getUser]);
 
+  const orderHandler = () => {
+    const orderData = {
+      orderTotal: {
+        itemsCount: itemsCount,
+        cartSubtotal: cartSubtotal,
+      },
+      cartItems: cartItems.map((item) => {
+        return {
+          productID: item.productID,
+          name: item.name,
+          price: item.price,
+          image: { path: item.image ? item.image.path ?? null : null },
+          quantity: item.quantity,
+          count: item.count,
+        };
+      }),
+      paymentMethod: paymentMethod,
+    };
+
+    createOrder(orderData)
+      .then((data) => {
+        if (data) {
+          navigate("/user/order-details/" + data._id);
+        }
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const choosePayment = (e) => {
+    setPaymentMethod(e.target.value);
+  };
+
   return (
     <Container fluid>
       <Row className="mt-4">
@@ -72,12 +111,13 @@ const UserCartDetailsPageComponent = ({
             <Col md={6}>
               <h2>Shipping</h2>
               <b>Name</b>: {userInfo.name} {userInfo.lastName} <br />
-              <b>Address</b>: {userAddress.address} {userAddress.city} {userAddress.state} {userAddress.zipCode} <br />
+              <b>Address</b>: {userAddress.address} {userAddress.city}{" "}
+              {userAddress.state} {userAddress.zipCode} <br />
               <b>Phone</b>: {userAddress.phoneNumber}
             </Col>
             <Col md={6}>
               <h2>Payment Method</h2>
-              <Form.Select>
+              <Form.Select onChange={choosePayment}>
                 <option value="pp">PayPal</option>
                 <option value="cod">
                   Cash On Delivery (delivery may be delayed)
@@ -137,8 +177,9 @@ const UserCartDetailsPageComponent = ({
                   variant="danger"
                   type="button"
                   disabled={buttonDisabled}
+                  onClick={orderHandler}
                 >
-                  Pay for the Order
+                  Place order
                 </Button>
               </div>
             </ListGroup.Item>

@@ -14,7 +14,12 @@ const UserCartDetailsPage = () => {
   const getUser = async () => {
     const { data } = await axios.get("/api/users/profile/" + userInfo._id);
     return data;
-  }
+  };
+
+  const createOrder = async (orderData) => {
+    const { data } = await axios.post("/api/orders", { ...orderData });
+    return data;
+  };
 
   return (
     <UserCartDetailsPageComponent
@@ -26,6 +31,7 @@ const UserCartDetailsPage = () => {
       reduxDispatch={reduxDispatch}
       getUser={getUser}
       userInfo={userInfo}
+      createOrder={createOrder}
     />
   );
 };
