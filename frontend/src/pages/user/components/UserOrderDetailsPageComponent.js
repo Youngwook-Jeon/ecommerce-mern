@@ -8,10 +8,16 @@ import {
   Row,
 } from "react-bootstrap";
 import CartItemComponent from "../../../components/CartItemComponent";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
-const UserOrderDetailsPageComponent = ({ userInfo, getUser, getOrder }) => {
+const UserOrderDetailsPageComponent = ({
+  userInfo,
+  getUser,
+  getOrder,
+  loadScript,
+  loadPayPalScript,
+}) => {
   const [userAddress, setUserAddress] = useState({});
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isPaid, setIsPaid] = useState(false);
@@ -20,6 +26,8 @@ const UserOrderDetailsPageComponent = ({ userInfo, getUser, getOrder }) => {
   const [cartSubtotal, setCartSubtotal] = useState(0);
   const [isDelivered, setIsDelivered] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
+
+  const paypalContainer = useRef();
 
   const { id } = useParams();
 
@@ -64,6 +72,21 @@ const UserOrderDetailsPageComponent = ({ userInfo, getUser, getOrder }) => {
       .catch((err) => console.log(err));
   }, [getOrder, id]);
 
+  const orderHandler = () => {
+    setButtonDisabled(true);
+    if (paymentMethod === "pp") {
+      setOrderButtonMessage(
+        "To pay for your order click one of the buttons below."
+      );
+
+      if (!isPaid) {
+        loadPayPalScript()
+      }
+    } else {
+      setOrderButtonMessage("Your order was placed. Thank you.");
+    }
+  };
+
   return (
     <Container fluid>
       <Row className="mt-4">
@@ -89,8 +112,15 @@ const UserOrderDetailsPageComponent = ({ userInfo, getUser, getOrder }) => {
             </Col>
             <Row>
               <Col>
-                <Alert className="mt-3" variant={isDelivered ? "success" : "danger"}>
-                  {isDelivered ? <>Delivered at {isDelivered}</> : <>Not delivered</>}
+                <Alert
+                  className="mt-3"
+                  variant={isDelivered ? "success" : "danger"}
+                >
+                  {isDelivered ? (
+                    <>Delivered at {isDelivered}</>
+                  ) : (
+                    <>Not delivered</>
+                  )}
                 </Alert>
               </Col>
               <Col>
@@ -104,17 +134,8 @@ const UserOrderDetailsPageComponent = ({ userInfo, getUser, getOrder }) => {
 
           <h2>Order Items</h2>
           <ListGroup variant="flush">
-            {Array.from({ length: 3 }).map((item, idx) => (
-              <CartItemComponent
-                key={idx}
-                item={{
-                  image: { path: "/images/tablets-category.png" },
-                  name: "Product name",
-                  price: 10,
-                  count: 10,
-                  quantity: 10,
-                }}
-              />
+            {cartItems.map((item, idx) => (
+              <CartItemComponent key={idx} item={item} orderCreated={true} />
             ))}
           </ListGroup>
         </Col>
@@ -124,7 +145,8 @@ const UserOrderDetailsPageComponent = ({ userInfo, getUser, getOrder }) => {
               <h3>Order Summary</h3>
             </ListGroup.Item>
             <ListGroup.Item>
-              Items Price (after tax): <span className="fw-bold">${cartSubtotal}</span>
+              Items Price (after tax):{" "}
+              <span className="fw-bold">${cartSubtotal}</span>
             </ListGroup.Item>
             <ListGroup.Item>
               Shipping: <span className="fw-bold">included</span>
@@ -137,9 +159,19 @@ const UserOrderDetailsPageComponent = ({ userInfo, getUser, getOrder }) => {
             </ListGroup.Item>
             <ListGroup.Item>
               <div className="d-grid gap-2">
-                <Button size="lg" variant="danger" type="button" disabled={buttonDisabled}>
+                <Button
+                  onClick={orderHandler}
+                  size="lg"
+                  variant="danger"
+                  type="button"
+                  disabled={buttonDisabled}
+                >
                   {orderButtonMessage}
                 </Button>
+              </div>
+
+              <div style={{ position: "relative", zIndex: 1 }}>
+                <div ref={paypalContainer} id="paypal-container-element"></div>
               </div>
             </ListGroup.Item>
           </ListGroup>
