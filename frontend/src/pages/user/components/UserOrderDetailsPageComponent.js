@@ -80,12 +80,19 @@ const UserOrderDetailsPageComponent = ({
       );
 
       if (!isPaid) {
-        loadPayPalScript()
+        loadPayPalScript(cartSubtotal, cartItems, id, updateStateAfterOrder);
       }
     } else {
       setOrderButtonMessage("Your order was placed. Thank you.");
     }
   };
+
+  const updateStateAfterOrder = (paidAt) => {
+    setOrderButtonMessage("Thank you for your payment.");
+    setIsPaid(paidAt);
+    setButtonDisabled(true);
+    paypalContainer.current.style = "display: none";
+  }
 
   return (
     <Container fluid>
@@ -125,7 +132,7 @@ const UserOrderDetailsPageComponent = ({
               </Col>
               <Col>
                 <Alert className="mt-3" variant={isPaid ? "success" : "danger"}>
-                  {isPaid ? <>Paid on {isPaid}</> : <>Not paid yet</>}
+                  {isPaid ? <>Paid at {isPaid}</> : <>Not paid yet</>}
                 </Alert>
               </Col>
             </Row>
