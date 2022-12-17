@@ -34,9 +34,14 @@ const EditProductPageComponent = ({
   });
   const [attributesFromDb, setAttributesFromDb] = useState([]);
   const [attributesTable, setAttributesTable] = useState([]);
+  const [categoryChosen, setCategoryChosen] = useState("Choose category");
+  const [newAttrKey, setNewAttrKey] = useState(false);
+  const [newAttrValue, setNewAttrValue] = useState(false);
 
   const attrVal = useRef(null);
   const attrKey = useRef(null);
+  const createNewAttrKey = useRef(null);
+  const createNewAttrVal = useRef(null);
 
   const { id } = useParams();
 
@@ -87,6 +92,7 @@ const EditProductPageComponent = ({
       }
     }
 
+    setCategoryChosen(product.category);
     setAttributesTable(product.attrs);
   }, [product, categories]);
 
@@ -101,7 +107,7 @@ const EditProductPageComponent = ({
       count: form.count.value,
       price: form.price.value,
       category: form.category.value,
-      attributesTable: [],
+      attributesTable: attributesTable,
     };
 
     if (event.currentTarget.checkValidity() === true) {
@@ -132,6 +138,68 @@ const EditProductPageComponent = ({
     } else {
       setAttributesFromDb([]);
     }
+    setCategoryChosen(e.target.value);
+  };
+
+  const attributeValueSelected = (e) => {
+    if (e.target.value !== "Choose attribute value") {
+      setAttributesTableWrapper(attrKey.current.value, e.target.value);
+    }
+  };
+
+  const setAttributesTableWrapper = (key, val) => {
+    setAttributesTable((attr) => {
+      if (attr.length !== 0) {
+        var keyExistsInOldTable = false;
+        let modifiedTable = attr.map((item) => {
+          if (item.key === key) {
+            keyExistsInOldTable = true;
+            item.value = val;
+            return item;
+          } else {
+            return item;
+          }
+        });
+
+        if (keyExistsInOldTable) return [...modifiedTable];
+        else return [...modifiedTable, { key: key, value: val }];
+      } else {
+        return [{ key: key, value: val }];
+      }
+    });
+  };
+
+  const deleteAttribute = (key) => {
+    setAttributesTable((table) => table.filter((item) => item.key !== key));
+  };
+
+  const checkKeyDown = (e) => {
+    if (e.code === "Enter") e.preventDefault();
+  };
+
+  const newAttrKeyHandler = (e) => {
+    e.preventDefault();
+    setNewAttrKey(e.target.value);
+    addNewAttributeManually(e);
+  };
+
+  const newAttrValueHandler = (e) => {
+    e.preventDefault();
+    setNewAttrValue(e.target.value);
+    addNewAttributeManually(e);
+  };
+
+  const addNewAttributeManually = (e) => {
+    if (e.keyCode && e.keyCode === 13) {
+      if (newAttrKey && newAttrValue) {
+        setAttributesTableWrapper(newAttrKey, newAttrValue);
+        e.target.value = "";
+        createNewAttrKey.current.value = "";
+        createNewAttrVal.current.value = "";
+        setNewAttrKey(false);
+        setNewAttrValue(false);
+      }
+    }
   };
 
   return (
@@ -144,7 +212,12 @@ const EditProductPageComponent = ({
         </Col>
         <Col md={6}>
           <h1>Edit Product</h1>
-          <Form noValidate validated={validated} onSubmit={handleSubmit}>
+          <Form
+            noValidate
+            validated={validated}
+            onSubmit={handleSubmit}
+            onKeyDown={(e) => checkKeyDown(e)}
+          >
             <Form.Group className="mb-3" controlId="formBasicName">
               <Form.Label>Name</Form.Label>
               <Form.Control
@@ -194,7 +267,7 @@ const EditProductPageComponent = ({
                 aria-label="Default select example"
                 onChange={changeCategory}
               >
-                <option value="">Choose category</option>
+                <option value="Choose category">Choose category</option>
                 {categories.map((category, idx) => {
                   return product.category === category.name ? (
                     <option selected key={idx} value={category.name}>
@@ -239,6 +312,7 @@ const EditProductPageComponent = ({
                       name="atrrVal"
                       aria-label="Default select example"
                       ref={attrVal}
+                      onChange={attributeValueSelected}
                     >
                       <option>Choose attribute value</option>
                     </Form.Select>
@@ -263,7 +337,9 @@ const EditProductPageComponent = ({
                         <td>{item.key}</td>
                         <td>{item.value}</td>
                         <td>
-                          <CloseButton />
+                          <CloseButton
+                            onClick={() => deleteAttribute(item.key)}
+                          />
                         </td>
                       </tr>
                     ))}
@@ -277,10 +353,13 @@ const EditProductPageComponent = ({
                 <Form.Group className="mb-3" controlId="formBasicNewAttribute">
                   <Form.Label>Create new attribute</Form.Label>
                   <Form.Control
-                    disabled={false}
+                    ref={createNewAttrKey}
+                    disabled={categoryChosen === "Choose category"}
                     placeholder="first choose or create category"
-                    name="newAttrValue"
+                    name="newAttrKey"
                     type="text"
+                    onKeyUp={newAttrKeyHandler}
+                    required={newAttrValue}
                   />
                 </Form.Group>
               </Col>
@@ -291,19 +370,21 @@ const EditProductPageComponent = ({
                 >
                   <Form.Label>Attribute value</Form.Label>
                   <Form.Control
-                    disabled={false}
+                    ref={createNewAttrVal}
+                    disabled={categoryChosen === "Choose category"}
                     placeholder="first choose or create category"
-                    required={true}
                     name="newAttrValue"
                     type="text"
+                    onKeyUp={newAttrValueHandler}
+                    required={newAttrKey}
                   />
                 </Form.Group>
               </Col>
             </Row>
 
-            <Alert variant="primary">
-              After typing attribute key and value press enterr on one of the
-              field
+            <Alert show={newAttrKey && newAttrValue} variant="primary">
+              After typing both attribute key and value, press enter on one of
+              the field
             </Alert>
 
             <Form.Group controlId="formFileMultiple" className="mb-3 mt-3">
