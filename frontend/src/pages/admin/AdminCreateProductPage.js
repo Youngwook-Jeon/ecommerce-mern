@@ -19,11 +19,32 @@ const uploadImagesApiRequest = async (images, productId) => {
   );
 };
 
+const uploadImagesCloudinaryApiRequest = (images, productId) => {
+  const url = "https://api.cloudinary.com/v1_1/dw6i0vp1r/image/upload";
+  const formData = new FormData();
+  for (let i = 0; i < images.length; i++) {
+    let file = images[i];
+    formData.append("file", file);
+    formData.append("upload_preset", "srbckcrh");
+    fetch(url, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        axios.post("/api/products/admin/upload?cloudinary=true&productId=" + productId, data);
+      });
+  }
+};
+
 const AdminCreateProductPage = () => {
   return (
     <CreateProductPageComponent
       uploadImagesApiRequest={uploadImagesApiRequest}
       createProductApiRequest={createProductApiRequest}
+      uploadImagesCloudinaryApiRequest={uploadImagesCloudinaryApiRequest}
     />
   );
 };

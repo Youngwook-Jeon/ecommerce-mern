@@ -14,12 +14,16 @@ import { useState } from "react";
 const CreateProductPageComponent = ({
   uploadImagesApiRequest,
   createProductApiRequest,
+  uploadImagesCloudinaryApiRequest,
 }) => {
   const [validated, setValidated] = useState(false);
   const [attributesTable, setAttributesTable] = useState([]);
   const [images, setImages] = useState(false);
   const [isCreating, setIsCreating] = useState("");
-  const [createProductResponseState, setCreateProductResponseState] = useState({ message: "", error: "" });
+  const [createProductResponseState, setCreateProductResponseState] = useState({
+    message: "",
+    error: "",
+  });
 
   const navigate = useNavigate();
 
@@ -39,15 +43,37 @@ const CreateProductPageComponent = ({
       createProductApiRequest(formInputs)
         .then((data) => {
           if (images) {
-            uploadImagesApiRequest(images, data.productId)
-                .then(res => {})
-                .catch((err) => setIsCreating(err.response.data.message ? err.response.data.message : err.response.data));
+            if (process.env.NODE_ENV === "production") {
+              //TODO: Change to !== later
+              uploadImagesApiRequest(images, data.productId)
+                .then((res) => {})
+                .catch((err) =>
+                  setIsCreating(
+                    err.response.data.message
+                      ? err.response.data.message
+                      : err.response.data
+                  )
+                );
+            } else {
+              uploadImagesCloudinaryApiRequest(images, data.productId);
+            }
           }
 
-          if (data.message === "product created") navigate("/admin/products");
+          return data;
+        })
+        .then((data) => {
+          setIsCreating("Product is being created...");
+          setTimeout(() => {
+            setIsCreating("");
+            if (data.message === "product created") navigate("/admin/products");
+          }, 2000);
         })
         .catch((err) => {
-          setCreateProductResponseState({ error: err.response.data.message ? err.response.data.message : err.response.data });
+          setCreateProductResponseState({
+            error: err.response.data.message
+              ? err.response.data.message
+              : err.response.data,
+          });
         });
     }
 
@@ -56,7 +82,7 @@ const CreateProductPageComponent = ({
 
   const uploadHandler = (images) => {
     setImages(images);
-  }
+  };
 
   return (
     <Container>
@@ -205,7 +231,12 @@ const CreateProductPageComponent = ({
             <Form.Group controlId="formFileMultiple" className="mb-3 mt-3">
               <Form.Label>Images</Form.Label>
 
-              <Form.Control required type="file" multiple onChange={(e) => uploadHandler(e.target.files)} />
+              <Form.Control
+                required
+                type="file"
+                multiple
+                onChange={(e) => uploadHandler(e.target.files)}
+              />
               {isCreating}
             </Form.Group>
             <Button variant="primary" type="submit">
