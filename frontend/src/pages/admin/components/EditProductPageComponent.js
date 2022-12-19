@@ -28,7 +28,8 @@ const EditProductPageComponent = ({
   saveAttributeToCatDoc,
   reduxDispatch,
   imageDeleteHandler,
-  uploadHandler,
+  uploadImagesApiRequest,
+  uploadImagesCloudinaryApiRequest
 }) => {
   const [validated, setValidated] = useState(false);
   const [product, setProduct] = useState({});
@@ -427,18 +428,20 @@ const EditProductPageComponent = ({
                 multiple
                 onChange={(e) => {
                   setIsUploading("Uploading images is in progress...");
-                  uploadHandler(e.target.files, id)
-                    .then((data) => {
-                      setIsUploading("Uploading images job is completed.");
+                  if (process.env.NODE_ENV !== "production") {
+                    uploadImagesApiRequest(e.target.files, id)
+                      .then(data => {
+                        setIsUploading("Uploading images is completed.");
+                        setImageUploaded(!imageUploaded);
+                      })
+                      .catch((err) => setIsUploading(err.response.data.message ? err.response.data.message : err.response.data));
+                  } else {
+                    uploadImagesCloudinaryApiRequest(e.target.files, id);
+                    setIsUploading("Uploading images is completed. Either wait or refresh the page.");
+                    setTimeout(() => {
                       setImageUploaded(!imageUploaded);
-                    })
-                    .catch((err) =>
-                      setIsUploading(
-                        err.response.data.message
-                          ? err.response.data.message
-                          : err.response.data
-                      )
-                    );
+                    }, 5000);
+                  }
                 }}
               />
               {isUploading}

@@ -2,6 +2,7 @@ import EditProductPageComponent from "./components/EditProductPageComponent";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { saveAttributeToCatDoc } from "../../redux/actions/categoryActions";
+import { uploadImagesApiRequest, uploadImagesCloudinaryApiRequest } from "./utils/utils";
 
 const fetchProduct = async (productId) => {
   const { data } = await axios.get(`/api/products/get-one/${productId}`);
@@ -15,23 +16,17 @@ const updateProductApiRequest = async (productId, formInputs) => {
   return data;
 };
 
-const uploadHandler = async (images, productId) => {
-  const formData = new FormData();
-
-  Array.from(images).forEach((image) => {
-    formData.append("images", image);
-  });
-
-  await axios.post("/api/products/admin/upload?productId=" + productId, formData);
-}
-
 const AdminEditProductPage = () => {
   const { categories } = useSelector((state) => state.getCategories);
   const reduxDispatch = useDispatch();
 
   const imageDeleteHandler = async (imagePath, productId) => {
     let encoded = encodeURIComponent(imagePath);
-    await axios.delete(`/api/products/admin/image/${encoded}/${productId}`);
+    if (process.env.NODE_ENV !== "production") {
+      await axios.delete(`/api/products/admin/image/${encoded}/${productId}`);
+    } else {
+      await axios.delete(`/api/products/admin/image/${encoded}/${productId}?cloudinary=true`);
+    }
   }
 
   return (
@@ -42,7 +37,8 @@ const AdminEditProductPage = () => {
       saveAttributeToCatDoc={saveAttributeToCatDoc}
       reduxDispatch={reduxDispatch}
       imageDeleteHandler={imageDeleteHandler}
-      uploadHandler={uploadHandler}
+      uploadImagesApiRequest={uploadImagesApiRequest}
+      uploadImagesCloudinaryApiRequest={uploadImagesCloudinaryApiRequest}
     />
   );
 };
