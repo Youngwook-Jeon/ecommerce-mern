@@ -15,6 +15,9 @@ const CreateProductPageComponent = ({
   uploadImagesApiRequest,
   createProductApiRequest,
   uploadImagesCloudinaryApiRequest,
+  categories,
+  reduxDispatch,
+  newCategory,
 }) => {
   const [validated, setValidated] = useState(false);
   const [attributesTable, setAttributesTable] = useState([]);
@@ -24,6 +27,7 @@ const CreateProductPageComponent = ({
     message: "",
     error: "",
   });
+  const [categoryChosen, setCategoryChosen] = useState("Choose category");
 
   const navigate = useNavigate();
 
@@ -80,6 +84,18 @@ const CreateProductPageComponent = ({
     setImages(images);
   };
 
+  const newCategoryHandler = (e) => {
+    if (e.keyCode && e.keyCode === 13 && e.target.value) {
+      reduxDispatch(newCategory(e.target.value));
+      setTimeout(() => {
+        let element = document.getElementById("cats");
+        element.value = e.target.value;
+        setCategoryChosen(e.target.value);
+        e.target.value = "";
+      }, 200);
+    }
+  };
+
   return (
     <Container>
       <Row className="justify-content-md-center mt-5">
@@ -122,14 +138,17 @@ const CreateProductPageComponent = ({
                 <CloseButton />(<small>remove selected</small>)
               </Form.Label>
               <Form.Select
+                id="cats"
                 required
                 name="category"
                 aria-label="Default select example"
               >
-                <option value="">Choose category</option>
-                <option value="1">Laptops</option>
-                <option value="2">TV</option>
-                <option value="3">Games</option>
+                <option value="Choose category">Choose category</option>
+                {categories.map((category, idx) => (
+                  <option key={idx} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
               </Form.Select>
             </Form.Group>
 
@@ -137,7 +156,11 @@ const CreateProductPageComponent = ({
               <Form.Label>
                 Or create a new category (e.g. Computers/Laptops/Intel){" "}
               </Form.Label>
-              <Form.Control name="newCategory" type="text" />
+              <Form.Control
+                onKeyUp={newCategoryHandler}
+                name="newCategory"
+                type="text"
+              />
             </Form.Group>
 
             <Row className="mt-5">
@@ -195,7 +218,7 @@ const CreateProductPageComponent = ({
                 <Form.Group className="mb-3" controlId="formBasicNewAttribute">
                   <Form.Label>Create new attribute</Form.Label>
                   <Form.Control
-                    disabled={false}
+                    disabled={categoryChosen === "Choose category"}
                     placeholder="first choose or create category"
                     name="newAttrValue"
                     type="text"
@@ -209,7 +232,7 @@ const CreateProductPageComponent = ({
                 >
                   <Form.Label>Attribute value</Form.Label>
                   <Form.Control
-                    disabled={false}
+                    disabled={categoryChosen === "Choose category"}
                     placeholder="first choose or create category"
                     required={true}
                     name="newAttrValue"

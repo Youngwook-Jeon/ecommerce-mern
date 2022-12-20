@@ -24,3 +24,15 @@ export const saveAttributeToCatDoc =
       });
     }
   };
+
+export const newCategory = (category) => async (dispatch, getState) => {
+  const cat = getState().getCategories.categories;
+  const { data } = await axios.post("/api/categories", { category });
+
+  if (data.categoryCreated) {
+    dispatch({
+      type: actionTypes.INSERT_CATEGORY,
+      payload: [...cat, data.categoryCreated],
+    });
+  }
+};
