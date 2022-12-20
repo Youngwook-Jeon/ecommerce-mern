@@ -12,6 +12,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, Fragment, useRef } from "react";
 import { useParams } from "react-router-dom";
+import { changeCategory } from "./utils/utils";
 
 const onHover = {
   cursor: "pointer",
@@ -133,20 +134,6 @@ const EditProductPageComponent = ({
     }
 
     setValidated(true);
-  };
-
-  const changeCategory = (e) => {
-    const highLevelCategory = e.target.value.split("/")[0];
-    const highLevelCategoryAllData = categories.find(
-      (cat) => cat.name === highLevelCategory
-    );
-
-    if (highLevelCategoryAllData && highLevelCategoryAllData.attrs) {
-      setAttributesFromDb(highLevelCategoryAllData.attrs);
-    } else {
-      setAttributesFromDb([]);
-    }
-    setCategoryChosen(e.target.value);
   };
 
   const attributeValueSelected = (e) => {
@@ -276,7 +263,7 @@ const EditProductPageComponent = ({
                 required
                 name="category"
                 aria-label="Default select example"
-                onChange={changeCategory}
+                onChange={(e) => changeCategory(e, categories, setAttributesFromDb, setCategoryChosen)}
               >
                 <option value="Choose category">Choose category</option>
                 {categories.map((category, idx) => {
