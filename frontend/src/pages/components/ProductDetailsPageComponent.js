@@ -18,6 +18,8 @@ const ProductDetailsPageComponent = ({
   addToCartReduxAction,
   reduxDispatch,
   getProductDetails,
+  userInfo,
+  writeReviewApiRequest,
 }) => {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
@@ -25,6 +27,7 @@ const ProductDetailsPageComponent = ({
   const [product, setProduct] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [productReviewed, setProductReviewed] = useState(false);
 
   const addToCartHandler = () => {
     reduxDispatch(addToCartReduxAction(id, quantity));
@@ -57,7 +60,32 @@ const ProductDetailsPageComponent = ({
             : err.response.data
         )
       );
-  }, [getProductDetails, id]);
+  }, [getProductDetails, id, productReviewed]);
+
+  const sendReviewHandler = (e) => {
+    e.preventDefault();
+    const form = e.currentTarget.elements;
+    const formInputs = {
+      comment: form.comment.value,
+      rating: form.rating.value,
+    };
+
+    if (e.currentTarget.checkValidity() === true) {
+      writeReviewApiRequest(product._id, formInputs)
+        .then((data) => {
+          if (data === "review created") {
+            setProductReviewed("You successfully reviewed the product.");
+          }
+        })
+        .catch((err) =>
+          setProductReviewed(
+            err.response.data.message
+              ? err.response.data.message
+              : err.response.data
+          )
+        );
+    }
+  };
 
   return (
     <Container>
@@ -161,26 +189,46 @@ const ProductDetailsPageComponent = ({
                 </Col>
               </Row>
               <hr />
-              <Alert variant="danger">Login first to write a review</Alert>
-              <Form>
+              {!userInfo.name && (
+                <Alert variant="danger">Login first to write a review</Alert>
+              )}
+
+              <Form onSubmit={sendReviewHandler}>
                 <Form.Group
                   className="mb-3"
                   controlId="exampleForm.ControlInput1"
                 >
                   <Form.Label>Write a review</Form.Label>
-                  <Form.Control as="textarea" rows={3} />
+                  <Form.Control
+                    name="comment"
+                    required
+                    as="textarea"
+                    disabled={!userInfo.name}
+                    rows={3}
+                  />
                 </Form.Group>
-                <Form.Select aria-label="Default select example">
-                  <option>Your rating</option>
+                <Form.Select
+                  name="rating"
+                  required
+                  disabled={!userInfo.name}
+                  aria-label="Default select example"
+                >
+                  <option value="">Your rating</option>
                   <option value="5">5 (very good)</option>
                   <option value="4">4 (good)</option>
                   <option value="3">3 (average)</option>
                   <option value="2">2 (bad)</option>
                   <option value="1">1 (awful)</option>
                 </Form.Select>
-                <Button variant="primary" className="mb-3 mt-3">
+                <Button
+                  disabled={!userInfo.name}
+                  type="submit"
+                  variant="primary"
+                  className="mb-3 mt-3"
+                >
                   Submit
                 </Button>
+                {productReviewed}
               </Form>
             </Col>
           </>
