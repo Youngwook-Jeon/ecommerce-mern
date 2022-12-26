@@ -1,25 +1,23 @@
 import CategoryCardComponent from "../../components/CategoryCardComponent";
 import ProductCarouselComponent from "../../components/ProductCarouselComponent";
 import { Row, Container } from "react-bootstrap";
+import { useState, useEffect } from "react";
 
-const HomePageComponent = () => {
-  const categories = [
-    "Tablets",
-    "Monitors",
-    "Games",
-    "Printers",
-    "Software",
-    "Cameras",
-    "Books",
-    "Videos",
-  ];
+const HomePageComponent = ({ categories }) => {
+  const [mainCategories, setMainCategories] = useState([]);
+
+  useEffect(() => {
+    setMainCategories((cat) =>
+      categories.filter((item) => !item.name.includes("/"))
+    );
+  }, [categories]);
 
   return (
     <>
       <ProductCarouselComponent />
       <Container>
         <Row xs={1} md={2} className="g-4 mt-5">
-          {categories.map((category, idx) => (
+          {mainCategories.map((category, idx) => (
             <CategoryCardComponent key={idx} category={category} idx={idx} />
           ))}
         </Row>
