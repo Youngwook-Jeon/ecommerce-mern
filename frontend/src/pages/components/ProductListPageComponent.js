@@ -13,17 +13,22 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [attrsFilter, setAttrsFilter] = useState([]);
-  const [attrsFromFilter, setAttrsFromFilter] = useState([]);
+  const [attrsFilter, setAttrsFilter] = useState([]); // collect category attributes from db and show on the page
+  const [attrsFromFilter, setAttrsFromFilter] = useState([]); // collect user filters for category attributes
   const [showResetFiltersButton, setShowResetFiltersButton] = useState(false);
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({}); // collect all filters
+  const [price, setPrice] = useState(500);
+  const [ratingsFromFilter, setRatingsFromFilter] = useState({});
+  const [categoriesFromFilter, setCategoriesFromFilter] = useState({});
 
   const { categoryName } = useParams() || "";
 
   useEffect(() => {
     if (categoryName) {
-      let categoryAllData = categories.find((item) => item.name === categoryName.replaceAll(",", "/"));
-      
+      let categoryAllData = categories.find(
+        (item) => item.name === categoryName.replaceAll(",", "/")
+      );
+
       if (categoryAllData) {
         let mainCategory = categoryAllData.name.split("/")[0];
         let index = categories.findIndex((item) => item.name === mainCategory);
@@ -44,20 +49,24 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
         console.log(err);
         setError(true);
       });
-  }, [getProducts]);
+    console.log(filters);
+  }, [getProducts, filters]);
 
   const handleFilters = () => {
     setShowResetFiltersButton(true);
     setFilters({
+      price: price,
+      rating: ratingsFromFilter,
+      category: categoriesFromFilter,
       attrs: attrsFromFilter,
-    })
-  }
+    });
+  };
 
   const resetFilters = () => {
     setShowResetFiltersButton(false);
     setFilters({});
     window.location.href = "/product-list";
-  }
+  };
 
   return (
     <Container fluid>
@@ -69,21 +78,32 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
             </ListGroup.Item>
             <ListGroup.Item>
               FILTER: <br />
-              <PriceFilterComponent />
+              <PriceFilterComponent price={price} setPrice={setPrice} />
             </ListGroup.Item>
             <ListGroup.Item>
-              <RatingFilterComponent />
+              <RatingFilterComponent
+                setRatingsFromFilter={setRatingsFromFilter}
+              />
             </ListGroup.Item>
             <ListGroup.Item>
-              <CategoryFilterComponent />
+              <CategoryFilterComponent
+                setCategoriesFromFilter={setCategoriesFromFilter}
+              />
             </ListGroup.Item>
             <ListGroup.Item>
-              <AttributesFilterComponent attrsFilter={attrsFilter} setAttrsFromFilter={setAttrsFromFilter} />
+              <AttributesFilterComponent
+                attrsFilter={attrsFilter}
+                setAttrsFromFilter={setAttrsFromFilter}
+              />
             </ListGroup.Item>
             <ListGroup.Item>
-              <Button variant="primary" onClick={handleFilters}>Filter</Button>{" "}
+              <Button variant="primary" onClick={handleFilters}>
+                Filter
+              </Button>{" "}
               {showResetFiltersButton && (
-                <Button variant="danger" onClick={resetFilters} >Reset filters</Button>
+                <Button variant="danger" onClick={resetFilters}>
+                  Reset filters
+                </Button>
               )}
             </ListGroup.Item>
           </ListGroup>
