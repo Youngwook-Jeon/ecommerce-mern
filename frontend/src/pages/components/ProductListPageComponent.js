@@ -8,6 +8,7 @@ import CategoryFilterComponent from "../../components/filterQueryResultOptions/C
 import AttributesFilterComponent from "../../components/filterQueryResultOptions/AttributesFilterComponent";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const ProductListPageComponent = ({ getProducts, categories }) => {
   const [products, setProducts] = useState([]);
@@ -22,6 +23,8 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   const [categoriesFromFilter, setCategoriesFromFilter] = useState({});
 
   const { categoryName } = useParams() || "";
+
+  const location = useLocation();
 
   useEffect(() => {
     if (categoryName) {
@@ -40,6 +43,25 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   }, [categoryName, categories]);
 
   useEffect(() => {
+    if (Object.entries(categoriesFromFilter).length > 0) {
+      setAttrsFilter([]);
+      var cat = [];
+      var count;
+      Object.entries(categoriesFromFilter).forEach(([category, checked]) => {
+        if (checked) {
+          var name = category.split("/")[0];
+          cat.push(name);
+          count = cat.filter((x) => x === name).length;
+          if (count === 1) {
+            var index = categories.findIndex((item) => item.name === name);
+            setAttrsFilter((attrs) => [...attrs, ...categories[index].attrs]);
+          }
+        }
+      });
+    }
+  }, [categoriesFromFilter, categories]);
+
+  useEffect(() => {
     getProducts()
       .then((products) => {
         setProducts(products.products);
@@ -49,7 +71,6 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
         console.log(err);
         setError(true);
       });
-    console.log(filters);
   }, [getProducts, filters]);
 
   const handleFilters = () => {
@@ -85,11 +106,14 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
                 setRatingsFromFilter={setRatingsFromFilter}
               />
             </ListGroup.Item>
-            <ListGroup.Item>
-              <CategoryFilterComponent
-                setCategoriesFromFilter={setCategoriesFromFilter}
-              />
-            </ListGroup.Item>
+            {!location.pathname.match(/\/category/) && (
+              <ListGroup.Item>
+                <CategoryFilterComponent
+                  setCategoriesFromFilter={setCategoriesFromFilter}
+                />
+              </ListGroup.Item>
+            )}
+
             <ListGroup.Item>
               <AttributesFilterComponent
                 attrsFilter={attrsFilter}
