@@ -2,7 +2,7 @@ import ProductListPageComponent from "./components/ProductListPageComponent";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
-const getProducts = async () => {
+const getProducts = async (categoryName = "", pageNum = null, searchQuery = "", filters = {}, sortOption = "") => {
   const { data } = await axios.get("/api/products");
   return data;
 }

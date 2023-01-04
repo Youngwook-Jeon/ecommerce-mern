@@ -21,8 +21,13 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   const [price, setPrice] = useState(500);
   const [ratingsFromFilter, setRatingsFromFilter] = useState({});
   const [categoriesFromFilter, setCategoriesFromFilter] = useState({});
+  const [sortOption, setSortOption] = useState("");
+  const [paginationLinksNumber, setPaginationLinksNumber] = useState(null);
+  const [pageNumParam, setPageNumParam] = useState(null);
 
   const { categoryName } = useParams() || "";
+  const { pageNum } = useParams() || 1;
+  const { searchQuery } = useParams() || "";
 
   const location = useLocation();
 
@@ -62,16 +67,18 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   }, [categoriesFromFilter, categories]);
 
   useEffect(() => {
-    getProducts()
+    getProducts(categoryName, pageNum, searchQuery, filters, sortOption)
       .then((products) => {
         setProducts(products.products);
+        setPaginationLinksNumber(products.paginationLinksNumber);
+        setPageNumParam(products.pageNum);
         setLoading(false);
       })
       .catch((err) => {
         console.log(err);
         setError(true);
       });
-  }, [getProducts, filters]);
+  }, [getProducts, filters, sortOption, categoryName, pageNum, searchQuery]);
 
   const handleFilters = () => {
     setShowResetFiltersButton(true);
@@ -95,7 +102,7 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
         <Col md={3}>
           <ListGroup variant="flush">
             <ListGroup.Item className="mb-3 mt-3">
-              <SortOptionsComponent />
+              <SortOptionsComponent setSortOption={setSortOption} />
             </ListGroup.Item>
             <ListGroup.Item>
               FILTER: <br />
@@ -152,7 +159,14 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
             ))
           )}
 
-          <PaginationComponent />
+          {paginationLinksNumber > 1 ? (
+            <PaginationComponent
+              categoryName={categoryName}
+              searchQuery={searchQuery}
+              paginationLinksNumber={paginationLinksNumber}
+              pageNumParam={pageNumParam}
+            />
+          ) : null}
         </Col>
       </Row>
     </Container>
