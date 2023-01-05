@@ -7,8 +7,7 @@ import RatingFilterComponent from "../../components/filterQueryResultOptions/Rat
 import CategoryFilterComponent from "../../components/filterQueryResultOptions/CategoryFilterComponent";
 import AttributesFilterComponent from "../../components/filterQueryResultOptions/AttributesFilterComponent";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 const ProductListPageComponent = ({ getProducts, categories }) => {
   const [products, setProducts] = useState([]);
@@ -30,6 +29,7 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   const { searchQuery } = useParams() || "";
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (categoryName) {
@@ -81,6 +81,7 @@ const ProductListPageComponent = ({ getProducts, categories }) => {
   }, [getProducts, filters, sortOption, categoryName, pageNum, searchQuery]);
 
   const handleFilters = () => {
+    navigate(location.pathname.replace(/\/[0-9]+$/, ""));
     setShowResetFiltersButton(true);
     setFilters({
       price: price,
