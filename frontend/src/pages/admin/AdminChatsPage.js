@@ -5,7 +5,7 @@ import AdminLinksComponent from "../../components/admin/AdminLinksComponent";
 
 const AdminChatsPage = () => {
   const { chatRooms } = useSelector((state) => state.adminChat);
-  console.log(chatRooms);
+
   return (
     <Row className="m-5">
       <Col md={2}>
@@ -13,7 +13,9 @@ const AdminChatsPage = () => {
       </Col>
       <Col md={10}>
         <Row>
-          <AdminChatRoomComponent />
+          {Object.entries(chatRooms).map((chatRoom, index) => (
+            <AdminChatRoomComponent key={index} chatRoom={chatRoom} />
+          ))}
         </Row>
       </Col>
     </Row>
