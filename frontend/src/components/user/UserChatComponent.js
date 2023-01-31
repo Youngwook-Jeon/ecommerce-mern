@@ -13,6 +13,13 @@ const UserChatComponent = () => {
     if (!userInfo.isAdmin) {
       const socket = socketIOClient();
       setSocket(socket);
+      socket.on("server sends message from admin to client", (msg) => {
+        setChat((chat) => {
+          return [...chat, { admin: msg }];
+        });
+        const chatMessages = document.querySelector(".chat-msg");
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
       return () => socket.disconnect();
     }
   }, [userInfo.isAdmin]);

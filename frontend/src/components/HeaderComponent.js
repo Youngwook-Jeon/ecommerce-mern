@@ -17,7 +17,7 @@ import { logout } from "../redux/actions/userActions";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getCategories } from "../redux/actions/categoryActions";
-import { setChatRooms } from "../redux/actions/chatActions";
+import { setChatRooms, setSocket } from "../redux/actions/chatActions";
 import socketIOClient from "socket.io-client";
 
 const HeaderComponent = () => {
@@ -62,6 +62,7 @@ const HeaderComponent = () => {
     if (userInfo.isAdmin) {
       const socket = socketIOClient();
       socket.on("server sends message from client to admin", ({ message }) => {
+        dispatch(setSocket(socket));
         dispatch(setChatRooms("exampleUser", message));
       })
     }

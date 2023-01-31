@@ -2,6 +2,7 @@ import * as actionTypes from "../constants/chatConstants";
 
 const CHAT_INITIAL_STATE = {
   chatRooms: {},
+  socket: false,
 };
 
 export const adminChatReducer = (state = CHAT_INITIAL_STATE, action) => {
@@ -25,6 +26,12 @@ export const adminChatReducer = (state = CHAT_INITIAL_STATE, action) => {
           },
         };
       }
+
+    case actionTypes.SET_SOCKET:
+      return {
+        ...state,
+        socket: action.payload.socket,
+      };
 
     default:
       return state;

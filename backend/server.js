@@ -16,7 +16,11 @@ io.on("connection", (socket) => {
   socket.on("client sends message", (msg) => {
     socket.broadcast.emit("server sends message from client to admin", {
       message: msg,
-    })
+    });
+  });
+
+  socket.on("admin sends message", ({ message }) => {
+    socket.broadcast.emit("server sends message from admin to client", message);
   });
 });
 
